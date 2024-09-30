@@ -1,3 +1,9 @@
 {
-  "test": "sdfsdf"
+  "usersDatabase": {
+    "dirPath": "./users/",
+    "files": {
+      "toParse": "toParse.txt",
+      "parsed": "parsed.txt"
+    }
+  }
 }
