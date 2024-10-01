@@ -8,7 +8,7 @@ def readFile(directory: str, filePath: str) -> list[str]:
 
 def writeToFile(directory: str, filePath: str, text: str) -> None:
     with open(directory + filePath, 'a', encoding='utf-8') as file:
-        file.write(text + '\n')
+        file.write(text.strip() + '\n')
 
 
 def deleteLine(directory: str, filePath: str, lineToDelete: str) -> None:
@@ -16,7 +16,7 @@ def deleteLine(directory: str, filePath: str, lineToDelete: str) -> None:
     with open(directory + filePath, 'w', encoding='utf-8') as file:
         for line in lines:
             if line.strip() != lineToDelete.strip():
-                file.write(line)
+                file.write(line.strip())
 
 
 def isLineInFile(directory: str, filePath: str, lineToCheck: str) -> bool:
@@ -31,13 +31,13 @@ async def readFileAsync(directory: str, filePath: str) -> list[str]:
 
 async def writeToFileAsync(directory: str, filePath: str, text: str) -> None:
     async with aiofiles.open(directory + filePath, 'a', encoding='utf-8') as file:
-        await file.write(text + '\n')
+        await file.write(text.strip() + '\n')
 
 
 async def writeMultipleToFileAsync(directory: str, filePath: str, arrText: list[str]) -> None:
     async with aiofiles.open(directory + filePath, 'a', encoding='utf-8') as file:
         for text in arrText:
-            await file.write(text + '\n')
+            await file.write(text.strip() + '\n')
 
 
 async def deleteLineAsync(directory: str, filePath: str, lineToDelete: str) -> None:
@@ -45,7 +45,7 @@ async def deleteLineAsync(directory: str, filePath: str, lineToDelete: str) -> N
     async with aiofiles.open(directory + filePath, 'w', encoding='utf-8') as file:
         for line in lines:
             if line.strip() != lineToDelete.strip():
-                await file.write(line)
+                await file.write(line.strip())
 
 
 async def isLineInFileAsync(directory: str, filePath: str, lineToCheck: str) -> bool:

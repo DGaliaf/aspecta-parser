@@ -1,67 +1,11 @@
 import asyncio
-import re
 
 import requests
 from config import getConfig
+from models import Link, Label
+from models.userData import UserData
 from utils import initFolders
 import utils.fileUtils as fileUtils
-
-
-class Link:
-    def __init__(self, name: str, url: str):
-        self.name: str = name
-        self.url: str = url
-
-    def __str__(self):
-        return f"Link: {self.name}: {self.url}"
-
-
-class Label:
-    def __init__(self, name: str):
-        self.name: str = name
-
-    def __str__(self):
-        return f"Label: {self.name}"
-
-
-class UserData:
-    def __init__(self, links: list[Link], wallet: str, labels: list[Label]):
-        self.links: list[Link] = links
-        self.wallet: str = wallet
-        self.labels: list[Label] = labels
-
-    def __str__(self):
-        labels = ""
-        for label in self.labels:
-            labels += f"-{label}\n"
-
-        links = ""
-        for link in self.links:
-            links += f"-{link}\n"
-
-        return f"----------------------\n\nUser:\n -Wallet: {self.wallet}\n -Labels:\n  {labels}\n -Links:\n  {links}\n----------------------\n\n"
-
-    def isEligible(self) -> bool:
-        def __hasNeededLabel() -> bool:
-            for label in self.labels:
-                if re.search(
-                        'dev|developer|Developer|Dev|Solidity|Engineer|engineer|solidity|backend|Backend|Frontend|frontend|manager|moderator|mod|content|Content|Manager|Programmer|programmer|intern|Intern|Collab|collab|Java|java|Go|go|Golang|golang|Flutter|flutter',
-                        label.name):
-                    return True
-
-            return False
-
-        def __hasLink() -> bool:
-            for link in self.links:
-                if link.url != "" or link.url != " " or link.url is not None:
-                    return True
-
-            return False
-
-        if __hasNeededLabel() and __hasLink():
-            return True
-
-        return False
 
 
 class AspectaParser:
@@ -102,7 +46,10 @@ class AspectaParser:
         for soc in response.get("social"):
             links.append(Link(name=soc.get("display_provider"), url=soc.get("url")))
 
-        wallet: str = response.get("web3")[0].get("uid")
+        if len(response.get("web3")) == 0:
+            wallet = ""
+        else:
+            wallet: str = response.get("web3")[0].get("uid")
 
         return links, wallet
 
@@ -112,8 +59,9 @@ class AspectaParser:
         response: dict = requests.get(url, headers=self.__genHeader(user)).json()
 
         labels: list[Label] = []
-        for label in response.get("custom_labels"):
-            labels.append(Label(name=label.get("display_name")))
+        if response.get("custom_labels") is not None:
+            for label in response.get("custom_labels"):
+                labels.append(Label(name=label.get("display_name")))
 
         return labels
 
@@ -151,26 +99,27 @@ class AspectaParser:
         while True:
             print(f"[+] Getting users...")
             users: list[str] = fileUtils.readFile(userDirectory, toParseFile)
-            print(f"[+] Got users - {len(users)}")
+            print(f"[+] Total users - {len(users)}")
 
             for user in users:
-                print(f"[+] Parsing {user}...")
-                if fileUtils.isLineInFile(userDirectory, parsedFile, user):
-                    print(f"[+] User - {user} already was parsed, passing him")
+                print(f"[+] Parsing {user.strip()}...")
+                if fileUtils.isLineInFile(userDirectory, parsedFile, user.strip()):
+                    print(f"[+] User - {user.strip()} already was parsed, passing him")
                     continue
 
                 print(f"[+] Getting user data...")
                 userData: UserData = self.parseUserData(user=user.strip())
-                print(f"[+] User data\n-------------\n{userData}-------------")
+                userData.name = user.capitalize()
+                print(f"[+] User data:\n{userData}")
                 print(f"[+] Getting user friends...")
                 friends = self.parseUserFriends(user=user.strip())
-                print(f"[+] Got {len(friends)} {user}`s friends")
+                print(f"[+] Got {len(friends)} {user.strip()}`s friends")
 
                 if userData.isEligible():
-                    print(f"[+] User - {user} is eligible")
+                    print(f"[+] User - {user.strip()} is eligible")
                     eligiblePath = self.cfg.get("outputDatabase").get("files").get("eligible")
                 else:
-                    print(f"[+] User - {user} is not eligible")
+                    print(f"[+] User - {user.strip()} is not eligible")
                     eligiblePath = self.cfg.get("outputDatabase").get("files").get("notEligible")
 
                 await fileUtils.deleteLineAsync(userDirectory, toParseFile, user)
