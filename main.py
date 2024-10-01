@@ -1,4 +1,5 @@
 import asyncio
+import re
 
 import requests
 from config import getConfig
@@ -12,7 +13,7 @@ class Link:
         self.url: str = url
 
     def __str__(self):
-        return f"{self.name}: {self.url}"
+        return f"Link: {self.name}: {self.url}"
 
 
 class Label:
@@ -24,11 +25,44 @@ class Label:
 
 
 class UserData:
-    # TODO: Print output
     def __init__(self, links: list[Link], wallet: str, labels: list[Label]):
         self.links: list[Link] = links
         self.wallet: str = wallet
         self.labels: list[Label] = labels
+
+    def __str__(self):
+        labels = ""
+        for label in self.labels:
+            labels += f"-{label}\n"
+
+        links = ""
+        for link in self.links:
+            links += f"-{link}\n"
+
+        return f"----------------------\n\nUser:\n -Wallet: {self.wallet}\n -Labels:\n  {labels}\n -Links:\n  {links}\n----------------------\n\n"
+
+    def isEligible(self) -> bool:
+        def __hasNeededLabel() -> bool:
+            for label in self.labels:
+                if re.search(
+                        'dev|developer|Developer|Dev|Solidity|Engineer|engineer|solidity|backend|Backend|Frontend|frontend|manager|moderator|mod|content|Content|Manager|Programmer|programmer|intern|Intern|Collab|collab|Java|java|Go|go|Golang|golang|Flutter|flutter',
+                        label.name):
+
+                    return True
+
+            return False
+
+        def __hasLink() -> bool:
+            for link in self.links:
+                if link.url != "" or link.url != " " or link.url is not None:
+                    return True
+
+            return False
+
+        if __hasNeededLabel() and __hasLink():
+            return True
+
+        return False
 
 
 class AspectaParser:
@@ -58,6 +92,10 @@ class AspectaParser:
 
         response: dict = requests.get(url, headers=self.__genHeader(user)).json()
 
+        if response.get("detail") == "Not found.":
+            print(f"[-] {user.capitalize()} not found.")
+            return [], ""
+
         links: list[Link] = []
         for prof in response.get("professional"):
             links.append(Link(name=prof.get("display_provider"), url=prof.get("url")))
@@ -69,7 +107,7 @@ class AspectaParser:
 
         return links, wallet
 
-    def __parseUserLabels(self, user) -> list[Label]:
+    def __parseUserLabels(self, user: str) -> list[Label]:
         url: str = f"https://aspecta.ai/api/profile/users/{user}/labels/"
 
         response: dict = requests.get(url, headers=self.__genHeader(user)).json()
@@ -90,20 +128,43 @@ class AspectaParser:
             labels=labels
         )
 
-    def parseUserFriends(self, user: str):
-        pass
+    def parseUserFriends(self, user: str) -> list[str]:
+        url: str = f"https://aspecta.ai/api/recommendation/users/{user}/recommendation-users?source=PC"
+
+        response: dict = requests.request("GET", url, headers=self.__genHeader(user)).json()
+
+        friends: list[str] = []
+        for comFriend in response.get("common_recommend"):
+            friends.append(comFriend.get("username"))
+
+        for valFriend in response.get("valuable_recommend"):
+            friends.append(valFriend.get("username"))
+
+        return friends
 
     async def start(self):
-        directory = self.cfg.get("usersDatabase").get("dirPath")
+        userDirectory = self.cfg.get("usersDatabase").get("dirPath")
+        outputDirectory = self.cfg.get("outputDatabase").get("dirPath")
         toParseFile = self.cfg.get("usersDatabase").get("files").get("toParse")
+        parsedFile = self.cfg.get("usersDatabase").get("files").get("parsed")
 
-        users: list[str] = fileUtils.readFile(directory, toParseFile)
+        users: list[str] = fileUtils.readFile(userDirectory, toParseFile)
         for user in users:
-            userData: UserData = self.parseUserData(user=user)
-            # self.parseUserFriends(user=user)
-            print(userData)
-            # TODO: Add database of "parsed users" and "to parse user"
-        pass
+            if fileUtils.isLineInFile(userDirectory, parsedFile, user):
+                continue
+
+            userData: UserData = self.parseUserData(user=user.strip())
+            friends = self.parseUserFriends(user=user.strip())
+
+            if userData.isEligible():
+                eligiblePath = self.cfg.get("outputDatabase").get("files").get("eligible")
+            else:
+                eligiblePath = self.cfg.get("outputDatabase").get("files").get("notEligible")
+
+            await fileUtils.deleteLineAsync(userDirectory, toParseFile, user)
+            await fileUtils.writeMultipleToFileAsync(userDirectory, toParseFile, friends)
+            await fileUtils.writeToFileAsync(userDirectory, parsedFile, user)
+            await fileUtils.writeToFileAsync(outputDirectory, eligiblePath, userData.__str__())
 
 
 async def main():

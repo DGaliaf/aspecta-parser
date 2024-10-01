@@ -5,5 +5,12 @@
       "toParse": "toParse.txt",
       "parsed": "parsed.txt"
     }
+  },
+  "outputDatabase": {
+    "dirPath": "./output/",
+    "files": {
+      "eligible": "eligible.txt",
+      "notEligible": "notEligible.txt"
+    }
   }
 }

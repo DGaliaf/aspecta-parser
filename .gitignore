@@ -2,3 +2,5 @@ venv
 .DS_Store
 .DS_STORE
 .env
+users/*
+output/*
