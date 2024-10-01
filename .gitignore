@@ -1,6 +1,76 @@
-venv
-.DS_Store
-.DS_STORE
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
 .env
-users/*
-output/*
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# macOS trash folder which stores files
+.Trashes
+._*
+
+# Log files and databases
+*.log
+*.sqlite3
+
+# Ignore folders
+users/
+output/
+
+# Ignore compiled files and packages
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+lib/
+lib64/
+parts/
+var/
+wheels/
+share/python-wheels/
+*.manifest
+*.spec
+
+# Test folder
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# PyInstaller
+# Usually these files are written by a python script from a template
+# before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Pytest cache
+.pytest_cache/
+
+# MyPy cache
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Ignore all VS Code files
+.vscode/
+
+# Ignore the output of wheel build process
+*.whl
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+__pypackages__/
