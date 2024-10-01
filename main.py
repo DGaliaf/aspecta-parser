@@ -47,7 +47,6 @@ class UserData:
                 if re.search(
                         'dev|developer|Developer|Dev|Solidity|Engineer|engineer|solidity|backend|Backend|Frontend|frontend|manager|moderator|mod|content|Content|Manager|Programmer|programmer|intern|Intern|Collab|collab|Java|java|Go|go|Golang|golang|Flutter|flutter',
                         label.name):
-
                     return True
 
             return False
@@ -121,7 +120,6 @@ class AspectaParser:
     def parseUserData(self, user: str) -> UserData:
         links, wallet = self.__parseUserLinks(user)
         labels = self.__parseUserLabels(user)
-
         return UserData(
             wallet=wallet,
             links=links,
@@ -148,23 +146,39 @@ class AspectaParser:
         toParseFile = self.cfg.get("usersDatabase").get("files").get("toParse")
         parsedFile = self.cfg.get("usersDatabase").get("files").get("parsed")
 
-        users: list[str] = fileUtils.readFile(userDirectory, toParseFile)
-        for user in users:
-            if fileUtils.isLineInFile(userDirectory, parsedFile, user):
-                continue
+        print(f"[+] Start parsing...")
 
-            userData: UserData = self.parseUserData(user=user.strip())
-            friends = self.parseUserFriends(user=user.strip())
+        while True:
+            print(f"[+] Getting users...")
+            users: list[str] = fileUtils.readFile(userDirectory, toParseFile)
+            print(f"[+] Got users - {len(users)}")
 
-            if userData.isEligible():
-                eligiblePath = self.cfg.get("outputDatabase").get("files").get("eligible")
-            else:
-                eligiblePath = self.cfg.get("outputDatabase").get("files").get("notEligible")
+            for user in users:
+                print(f"[+] Parsing {user}...")
+                if fileUtils.isLineInFile(userDirectory, parsedFile, user):
+                    print(f"[+] User - {user} already was parsed, passing him")
+                    continue
 
-            await fileUtils.deleteLineAsync(userDirectory, toParseFile, user)
-            await fileUtils.writeMultipleToFileAsync(userDirectory, toParseFile, friends)
-            await fileUtils.writeToFileAsync(userDirectory, parsedFile, user)
-            await fileUtils.writeToFileAsync(outputDirectory, eligiblePath, userData.__str__())
+                print(f"[+] Getting user data...")
+                userData: UserData = self.parseUserData(user=user.strip())
+                print(f"[+] User data\n-------------\n{userData}-------------")
+                print(f"[+] Getting user friends...")
+                friends = self.parseUserFriends(user=user.strip())
+                print(f"[+] Got {len(friends)} {user}`s friends")
+
+                if userData.isEligible():
+                    print(f"[+] User - {user} is eligible")
+                    eligiblePath = self.cfg.get("outputDatabase").get("files").get("eligible")
+                else:
+                    print(f"[+] User - {user} is not eligible")
+                    eligiblePath = self.cfg.get("outputDatabase").get("files").get("notEligible")
+
+                await fileUtils.deleteLineAsync(userDirectory, toParseFile, user)
+                await fileUtils.writeMultipleToFileAsync(userDirectory, toParseFile, friends)
+                await fileUtils.writeToFileAsync(userDirectory, parsedFile, user)
+                await fileUtils.writeToFileAsync(outputDirectory, eligiblePath, userData.__str__())
+
+        print(f"[+] Parsing end")
 
 
 async def main():
