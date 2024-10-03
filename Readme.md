@@ -1,9 +1,6 @@
 <p align="center">
     <h1 align="center">ASPECTA PARSER</h1>
 </p>
-<p align="center">
-    <em>Unleash user insights, streamline your data.**</em>
-</p>
 
 <br>
 
