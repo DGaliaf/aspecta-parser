@@ -6,9 +6,9 @@ def sort_balance():
             addr, balance = line.split(":")
             print(addr, balance)
 
-            if 0 <= float(balance.strip()) <= 400:
+            if 0 <= float(balance.strip()) <= 500:
                 file_path = "../balances/0_400.txt"
-            elif 401 <= float(balance.strip()) <= 1000:
+            elif 501 <= float(balance.strip()) <= 1000:
                 file_path = "../balances/401_1000.txt"
             else:
                 file_path = "../balances/1000_plus.txt"

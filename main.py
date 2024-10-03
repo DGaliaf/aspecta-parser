@@ -86,6 +86,9 @@ class AspectaParser:
         for valFriend in response.get("valuable_recommend"):
             friends.append(valFriend.get("username"))
 
+        for randFriend in response.get("random_recommend"):
+            friends.append(randFriend.get("username"))
+
         return friends
 
     async def start(self):
@@ -100,6 +103,8 @@ class AspectaParser:
             print(f"[+] Getting users...")
             users: list[str] = fileUtils.readFile(userDirectory, toParseFile)
             print(f"[+] Total users - {len(users)}")
+
+            # TODO: Перенести логику проверки был ли уже пользователь сюда:
 
             for user in users:
                 print(f"[+] Parsing {user.strip()}...")

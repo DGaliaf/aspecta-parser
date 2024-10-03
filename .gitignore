@@ -23,6 +23,7 @@ venv/
 # Ignore folders
 users/
 output/
+balances/
 
 # Ignore compiled files and packages
 *.egg

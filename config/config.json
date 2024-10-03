@@ -10,7 +10,17 @@
     "dirPath": "./output/",
     "files": {
       "eligible": "eligible.txt",
-      "notEligible": "notEligible.txt"
+      "notEligible": "notEligible.txt",
+      "wallets": "wallets.txt"
+    }
+  },
+  "balancesDatabase": {
+    "dirPath": "./balances/",
+    "files": {
+      "balances": "balances.txt",
+      "0_400": "0_400.txt",
+      "401_1000": "401_1000.txt",
+      "1001_plus": "1000_plus.txt"
     }
   }
 }
